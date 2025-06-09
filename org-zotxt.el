@@ -130,13 +130,14 @@ See `org-zotxt-insert-reference-link'."
 May be either an citekey or bibliography, depending on the value
 of `org-zotxt-link-description-style'."
   (let ((item (copy-tree item)))
-   (cl-case org-zotxt-link-description-style
-     (:citekey (zotxt-get-item-deferred item org-zotxt-link-description-style))
-     (:title (deferred:callback-post
-               (deferred:new)
-               (plist-put item
-                          :title (zotxt-key-to-title (plist-get item :key)))))
-     (t (zotxt-get-item-formatted-deferred item)))))
+    (cl-case org-zotxt-link-description-style
+      (:citekey (zotxt-get-item-deferred item org-zotxt-link-description-style))
+      (:title (let ((d (deferred:new)))
+                (deferred:callback-post
+                 d
+                 (plist-put item :title (zotxt-key-to-title (plist-get item :key))))
+                d))
+      (t (zotxt-get-item-formatted-deferred item)))))
 
 (defun org-zotxt-insert-reference-link (&optional arg)
   "Insert a zotero link in the `org-mode' document.
